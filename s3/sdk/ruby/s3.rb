@@ -4,6 +4,7 @@ require 'securerandom' # Load the SecureRandom library for generating random UUI
 
 # Define the S3 bucket name from the environment variables.
 bucket_name = ENV['BUCKET_NAME']
+region = 'us-east-2'
 
 # Initialize the AWS S3 client.
 client = Aws::S3::Client.new
@@ -15,7 +16,7 @@ resp = client.create_bucket({
         location_constraint: region  # Specify the region where the bucket will be created.
     }
 })
-binding.pry
+
 
 # Randomly determine the number of files to create and upload, between 1 and 6.
 number_of_files = 1 + rand(6)
