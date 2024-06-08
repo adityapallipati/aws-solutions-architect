@@ -1,5 +1,0 @@
-#!/usr/bin/env/bash
-
-echo "== deploy s3 bucket via CFN"
-
-aws cloudformation deploy
