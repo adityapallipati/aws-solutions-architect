@@ -22,3 +22,10 @@ aws s3api put-object --bucket="prefixes-fun-ap-12345" --key="Lorem/ipsum/dolor/s
 ```sh
 An error occurred (KeyTooLongError) when calling the PutObject operation: Your key is too long
 ```
+
+## Clean Up
+
+```sh
+../bash-scripts/delete-objects prefixes-fun-ap-12345
+../bash-scripts/delete-bucket prefixes-fun-ap-12345
+```

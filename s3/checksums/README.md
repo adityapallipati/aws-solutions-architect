@@ -51,3 +51,10 @@ aws s3api put-object
 --checksum-algorithm="SHA1" \
 --checksum-sha1="a0b65939670bc2c010f4d5d6a0b3e4e4590fb92b"
 ```
+
+## Clean Up
+
+```sh
+../bash-scripts/delete-objects checksums-examples-ap-12345
+../bash-scripts/delete-bucket checksums-examples-ap-12345
+```

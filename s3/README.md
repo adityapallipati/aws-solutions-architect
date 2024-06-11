@@ -145,13 +145,216 @@ S3 Objects are resources that **represent data** and is not infrastructure.
   Amazon S3 allows you to **attach metadata to S3 Objects** at anytime
   Metadata can be either:
     - System defined
+      System defined Metadata is **data that only Amazon can control.** Users usually* cannot set the metadata values.
+        - Content Type: image/jpeg
+        - Cache Control: max-age=3600, must-revalidate
+        - Content Disposition: attachment; filename='example.pdf'
+        - Content-Encoding: gzip
+        - Expires: Thu, 01 2030 16:00:00 GMT
+        - X-amz-website-redirection-location: /new-page.html
+      *AWS will attach some System defined metadata even if you do not specify any*
+      **Some system defined metadata can be modified by the user eg Content-Type**
+
     - User defined
+      User Defined Metadata is set by the user and must start with **x-amz-meta-* 
+      **Examples**
+      Access and Security
+      - x-amz-meta-encryption: "AES-356"
+      - x-amz-meta-access-level: "confidential"
+      - x-amz-meta-expiration-date: "2024-12-12"
+
+      Media File:
+      - x-amz-meta-camera-model: "Canon EOS 5D"
+      - x-amz-meta-photo-taken-on: "2023-05-05"
+      - x-amz-meta-location: "Dallas"
+
+      Custom Application:
+      - x-amz-meta-app-version: "2.4.1"
+      - x-amz-meta-data-imported: "2023-01-01"
+      - x-amz-meta-source: "CRM System"
+
+      Project-specific:
+      - x-amz-meta-project-id: "ABC12345"
+      - x-amz-meta-department: "Marketing"
+      - x-amz-meta-reviewed-by: "John Doe"
+
+      Document Versioning:
+      - x-amz-meta-version: "v3.1"
+      - x-amz-meta-last-modified-by: "Aditya Pallipati"
+      - x-amz-meta-original-upload: "2024-06-11"
+
+      Content-related:
+      - x-amz-meta-title: "Model Development Documentation 2024"
+      - x-amz-meta-author: "Aditya Pallipati"
+      - x-amz-meta-description: "Model development high level overview for XYZ model..."
+
+      Compliance and Legal:
+      - x-amz-meta-legal-hold: "true"
+      - x-amz-meta-compliance-category: "GDPR"
+      - x-amz-meta-access-level: "5 Years"
+
+      Backup and Archival:
+      - x-amz-meta-backup-status: "Completed"
+      - x-amz-meta-archive-status: "2024-08-31"
+      - x-amz-meta-recovery-point: "2023-08-31"
+
 
   **Resource Tags and Object tags are similar to Metadata but tags are intended to provide information about cloud resources (eg S3 Objects) and not the contents of the object.**
 
 - Object tags: benefits resource tagging but at the object level
 - Object Locking: makes data files immutable
+  **S3 Object Locks** allow you to **prevent the deletion of objects** in a bucket
+  This feature can only be turned on at the creation of a bucket
+  Object Lock is for companies that need to prevent objects being deleted to have:
+    - Data integrity
+    - Regulatory compliance
+
+  S3 Object Lock is **SEC 17a-4, CTCC,** and **FINRA** regulation compliant.
+
+  You can store objects using **write-once-read-many (WORM) model** just like S3 Glacier.
+
+  You can use it to prevent an object from being deleted or overwritten for:
+    - a fixed amount of time
+    - or indefinitely
+
+  Object retention is handled two different ways:
+    1. Retention periods: a fixed period of time which an object remains locked
+    2. Legal holds: remains locked until you remove the hold
+
+  **S3 buckets with Object Lock can't be used as destination buckets for server access logs.**
+
+  Object Locking **setting can only be set via the AWS API** eg (CLI, SDK) and not the AWS Console.
+
+```sh
+aws s3api put-object \
+--bucket your-bucket-name \
+--key your-object-key \
+--body file-to-upload \
+--object-lock-mode GOVERNANCE \
+--object-lock-retain-util-date "2025-01-01T00:00:00Z"
+```
+
+  This is to avoid misconfiguration by non-technical users locking objects.
+
 - Object Versioning: have multiple versions of a data file
+
+## Bucket URI
+  ** The S3 Bucket URI (Uniform Resource Identifier) is a way to reference the address of S3 bucket and S3 objects.
+
+  Example: s3://myexamplebucket/photo.jpg
+
+  You'll see this S3 Bucket URI required to be used for specific AWS CLI commands.
+
+  Example:
+
+```sh
+aws s3 cp test.txt s3://mybucket/test2.txt
+```
+
+## AWS S3 CLI
+
+  **aws s3**
+  A high level way to interact with S3 buckets and objects. Good for programmatically working with s3 using bash scripts.
+
+```sh
+aws s3 cp test.txt s3://mybucket/test.txt
+```
+
+  **aws s3api**
+  A low level way to interact with S3 buckets and objects.
+
+```sh
+aws s3api put-object \
+--bucket text-content \
+--key dir/file.jpg \
+--body file.jpg
+```
+
+ **aws s3control**
+ Managing s3 access points, s3 outputs buckets, s3 batch operations, storage lens.
+
+```sh
+aws s3control describe-job \ 
+--account-id 123456789012 \
+--job-id 123447883-abcd-7738-8098-708940983e
+```
+  **aws s3outputs**
+  Manage endpoints for S3 outputs.
+
+```sh
+aws s3outputs create-endpoint \
+--outpost-id "op-09138409382040092afd132" \
+--subnet-id "subnet-14932840328209232309843" \
+--security-group-id "sg-04982r230984311h2039302" \
+--customer-owned-ipv4-pool "ipv4pool-coip-abcdefg123456780
+```
+
+## Request Styles
+When making requests by using the REST API there are two styles of requests:
+
+1. Virtual hosted-style requests: bucket name is a subdomain on the host
+```md
+DELETE /photo.jpg HTTP/1.1
+Host: **examplebucket**.s3.us-west-2.amazonaws.com
+Date: Mon, 11 Apr 2016 12:00:00 GMT
+x-amz-date: Mon, 11 Apr 2016 12:00:00 GMT
+Authorization: authorization string
+```
+2. Path-style requests: bucket name is in the request path
+
+```md
+DELETE **/examplebucket**/photo.jpg HTTP/1.1
+Host: s3.us-west-2.amazonaws.com
+Date: Mon, 11 2016 12:00:00 GMT
+x-amz-date: Mon, 11 Apr 2016 12:00:00 GMT
+Authorization: authorization string
+
+**S3 supports both virtual-hosted-style and path-style URL but Path-style URLs will be discontinued in the future.**
+
+To force AWS CLI to use Virtual hosted-style requests you need to **globally configure the CLI.**
+
+```sh
+aws configure set s3.addressing_style virtual
+```
+
+## DualStack Endpoints
+
+There are *two possible endpoints accessing Amazon S3 API.
+
+Standard Endpoint: https://s3.us-east-2.amazonaws.com (handles only IPV4 traffic)
+
+DualStack: https://s3.dualstack.us-east-2.amazonaws.comm (handles both IPV4 and IPV6 traffic)
+
+At one point AWS only offered IPV4 and DualStack is designed as its future replacement since IPV4 addresses are running out and IPV6 has a larger public address space.
+
+*There are other S3 endpoints like Static Website, FIPS, S3 Controls, Access Points.
+
+## Storage Classes
+AWS offers a range of S3 storage classes that trade **Retrieval Time, Accessibility and Durability** for **Cheaper Storage**
+
+- **S3 Standard (default)** Fast, Available, and Durable
+  - **default storage class** when you upload to S3. It's designed for **general purpose storage for frequently accessed data**
+  - **High Durability** 11 9's of durability (99.999999999%)
+  - **High Availability** 4 9's of availability (99.99%)
+  - **Data Redundancy** Data stored in 3 or more Availability Zones (AZs)
+  - **Retrieval Time** within milliseconds (low latency)
+  - **High Throughput** optimized for data that is frequently accessed and/or requires real-time access
+  - **Scalability** easily scales to storage size and number of requests
+  - **Use Cases** Ideal for a wide range of use cases like content distribution, big data analytics, and mobile and gaming applications, where frequent access is required.
+  **Pricing** storage per gb, per requests, no retrieval fee, no minimum storage duration.
+
+- *S3 Reduced Redundancy Storage (RSS)* legacy storage class
+- **S3 Intelligent Tiering** Uses ML to analyze object usage and determine storage class. Extra fee to analyze.
+- **S3 Express One-Zone** single-digit ms performance, special bucket type, one AZ, 50% less than Standard cost
+- **S3 Standard-IA (Infrequent Access)** Fast, Cheaper if you access less than once a month. Extra fee to retrieve. **50% less** than Standard (reduced availability)
+- **S3 One-Zone-IA** Fast Objects only exist in one AZ. Cheaper than Standard IA by 20% less, (Reduce durability) Data could get destroyed. Extra fee to retrieve.
+- **S3 Glacier Instant Retrieval** For long-term cold storage. Get data instantly.
+- **S3 Glacier Flexible Retrieval** takes minutes to hours to get data (Standard, Expedited, Bulk Retrieval)
+- **S3 Glacier Deep Archive** The lowest cost storage class. Data retrieval time is 12 hours.
+
+**S3 Outputs has its own storage class.**
+
+
 
 ## Bucket Versioning
 "how we can version all objects"
