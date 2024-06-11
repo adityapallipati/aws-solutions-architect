@@ -103,10 +103,22 @@ S3 Objects are resources that **represent data** and is not infrastructure.
   - reflects changes only to the contents of an object, not its metadata
   - may or may not be an MD5 digest of the object data (depends if it's encrypted)
   - Etag represents a specific version of an object
-    
+
   **ETags are useful if you want to programmatically detect content changes to S3 objects.**
-  
+
 - Checksums: ensures the integrity of a file being uploaded or downloaded
+  **What is a Checksum?**
+  A checksum is used to **check the sum (amount) of data to ensure the data integrity of a file.**
+  If data is downloaded and if in-transit data is lost or mangled the checksum will **determine there is something wrong with the file**.
+
+  - Amazon S3 uses checksums to verify data integrity of files on the upload or download.
+  - Amazon allows you to **change the checksum algorithm during upload of an object**
+  - Amazon S3 offers the following checksum algorithms:
+    - CRC32 (Cyclic Redundancy Check)
+    - CRC32C
+    - SHA1 (Secure Hash Algorithms)
+    - SHA256
+
 - Object Prefixes: simulates file system folders in a flat hierarchy
 - Object Metadata: attach data alongside the content, to describe the contents of the data
 - Object tags: benefits resource tagging but at the object level
