@@ -120,7 +120,35 @@ S3 Objects are resources that **represent data** and is not infrastructure.
     - SHA256
 
 - Object Prefixes: simulates file system folders in a flat hierarchy
+  **What is a object prefix?**
+  S3 Object prefixes are **strings that proceed** the **Object filename** and are part of the Object key name.
+
+  Example: /assets/images/aditya.png
+
+  Object prefix --> **/assets/images/**
+  Object key name --> aditya.png
+  Object filename --> aditya.png
+
+  Since all objects in a bucket are stored in a **flat-structured hierarchy**, Object prefixes allows for a way to **organize, group, and filter** objects.
+
+  A prefix uses the forward slash "/" as a delimiter to group similar data, similar to directories (folders) or subdirectories. Prefixes are **not true folders**.
+
+  **There is no limit for the number of delimiters, the only limit is the Object Key Name cannot exceed 1024 bytes with the object prefix and filename combined.**
+
 - Object Metadata: attach data alongside the content, to describe the contents of the data
+  **What is Metadata?**
+  Metadata provides information about other data but not the contents itself.
+  Metadata is useful for:
+    - categorizing and organizing data
+    - providing contents about data
+
+  Amazon S3 allows you to **attach metadata to S3 Objects** at anytime
+  Metadata can be either:
+    - System defined
+    - User defined
+
+  **Resource Tags and Object tags are similar to Metadata but tags are intended to provide information about cloud resources (eg S3 Objects) and not the contents of the object.**
+
 - Object tags: benefits resource tagging but at the object level
 - Object Locking: makes data files immutable
 - Object Versioning: have multiple versions of a data file
