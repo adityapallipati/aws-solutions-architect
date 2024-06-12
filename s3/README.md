@@ -352,6 +352,32 @@ AWS offers a range of S3 storage classes that trade **Retrieval Time, Accessibil
 
 - **S3 Intelligent Tiering** Uses ML to analyze object usage and determine storage class. Extra fee to analyze.
 
+  **S3 Intelligent Tiering** storage class **automatically moves objects into different storage tiers** to reduce storage costs, but charges a low month cost for object monitoring and automation.
+
+    - S3 Intelligence access has the following access tiers:
+      - Frequent Access Tier (automatic)
+        - The default tier, objects remain here as long as they are being accessed.
+      - Infrequent Access Tier (automatic)
+        - If object is not accessed after 30 days its moved here
+      - Archive Instant Access Tier (automatic)
+        - If object is not accessed after 90 days its moved here
+      - Archive Access Tier (optional)
+        - After activation, if object is not accessed after 90 days, it is moved here
+      - Deep Archive Access Tier (optional)
+        - After activation, if object is not accessed after 180 days, it is moved here
+
+    **S3 Intelligent Tiering has additional cost to analyze objects for 30 days.**
+
+  Example Implementation using AWS CLI:
+
+```sh
+aws s3api put-object \
+--bucket my-bucket \
+--key 'myfile.parquet' \
+--body 'path/to/local/file' \
+--storage-class INTELLIGENT_TIERING
+```
+
 - **S3 Express One-Zone** single-digit ms performance, special bucket type, one AZ, 50% less than Standard cost
   **Amazon S3 Express One Zone** delivers **consistent single-digit millisecond data access** for your most frequently accessed data and latency-sensitive applications.
     - the lowest latest cloud object storage class available
@@ -410,7 +436,7 @@ AWS offers a range of S3 storage classes that trade **Retrieval Time, Accessibil
   S3 Glacier Instant Retrieval is a storage class designed for rarely accessed data that still needs immediate access in performance sensitive use cases.
   - **High Durability**: 11 9's of durability like S3 Standard
   - **High Availability**: 3 9's of availability (99.9%) like S3 Standard IA
-  - **Cost-Effective Storage**: 68% lower cost than Standard IA
+  - **Cost-Effective Storage**: **68%** lower cost than Standard IA
     - for long lied data that is **accessed once per quarter**
   - **Retrieval Time**: within milliseconds (low latency)
   - **Use Cases**: rarely accessed data that needs immediate access eg image hosting, online file-sharing applications, medical imaging and health records, news media assets, and satellite and arial imaging.
@@ -419,7 +445,38 @@ AWS offers a range of S3 storage classes that trade **Retrieval Time, Accessibil
 
 - **S3 Glacier Flexible Retrieval** takes minutes to hours to get data (Standard, Expedited, Bulk Retrieval)
 
+  **S3 Glacier Flexible Retrieval** (formally S3 Glacier) combines S3 and Glacier into a single set of APIs. It's considerably faster than Glacier Vault-based storage.
+
+  - There are 3 **retrieval tiers** (the faster the more expensive)
+    - **Expedited Tier** 1-5 mins 
+      - for urgent requests. limited to 250 mb archive size
+    - **Standard Tier** 3-5 hours
+      - no archive size limit. this is the **default** option
+    - **Bulk Tier** 5-12 hours
+      - no archive size limit, even petabytes worth of data
+
+  - You pay **per GB retrieved** and **number of requests**. This is a separate cost from just the cost of storage.
+  - Archived objects will have an additional 40KBs of data:
+    - 32 KB for archive index and archive metadata information
+    - 8KB for the name of the object
+  - **You should store fewer and larger files, instead of smaller files. 40KBs on thousands of files add up**
+  **Glacier Flexible Retrieval is not a separate service and does not require a Vault**
+
 - **S3 Glacier Deep Archive** The lowest cost storage class. Data retrieval time is 12 hours.
+
+  **S3 Glacier Deep Archive** combines S3 and Glacier into a single set of APIs. It's more cost-effective than S3 Glacier Flexible but greater cost of retrieval.
+
+  - There are two **retrieval tiers**:
+    - **Standard Tier** 12-48 hours
+      - No archive size limit. This is the default option.
+    - **Bulk Tier** 12-48 hours
+      - No archive size limit, even petabytes worth of data.
+  
+  - Archived objects will have an additional 40KBs of ddata:
+    - 32KB for index and metadata information
+    - 8KB for the name of the object
+  
+  **Glacier Deep Archive is not a separate service and does not require a Vault**
 
 **S3 Outputs has its own storage class.**
 
