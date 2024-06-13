@@ -497,7 +497,8 @@ aws s3api put-object \
 
 - **Bucket Policies**: Define permissions for an entire S3 bucket using JSON-based access policy language.
     - **S3 Bucket Policy** is a **resource-based policy** to grant an S3 bucket and bucket objects to other Principles eg AWS Accounts, Users, AWS Services.
-    - Below example only allows a specific role to read objects with prod object tag
+
+- **Below example only allows a specific role to read objects with prod object tag**
 
 ```json
 {
@@ -520,7 +521,7 @@ aws s3api put-object \
   }]
 }
 ```
-    - Below example restricts access to specific IP
+- ****Below example restricts access to specific IP**
 
 ```json
 {
