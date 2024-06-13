@@ -56,7 +56,7 @@ aws s3api get-public-access-block --bucket acl-example-ap-12345
 
 [policy.xml](./policy.json)
 
-```md
+```json
 {
   "Grants": [
     {

@@ -496,7 +496,12 @@ aws s3api put-object \
 ## S3 Security Overview
 
 - **Bucket Policies**: Define permissions for an entire S3 bucket using JSON-based access policy language.
+    - **S3 Bucket Policy** is a **resource-based policy** to grant an S3 bucket and bucket objects to other Principles eg AWS Accounts, Users, AWS Services.
 
+```json
+
+
+```
 
 - **Access Control Lists (ACLs)**: Provide a legacy method to manage access permissions on individual objects and buckets.
 
