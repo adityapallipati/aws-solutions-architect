@@ -497,11 +497,53 @@ aws s3api put-object \
 
 - **Bucket Policies**: Define permissions for an entire S3 bucket using JSON-based access policy language.
     - **S3 Bucket Policy** is a **resource-based policy** to grant an S3 bucket and bucket objects to other Principles eg AWS Accounts, Users, AWS Services.
+    - Below example only allows a specific role to read objects with prod object tag
 
 ```json
-
-
+{
+  "Version":"2012-10-17",
+  "Statement":[{
+    "Principal":{
+      "AWS":"arn:aws:iam::123456789012:role/ProdTeam"
+    },
+    "Effect":"Allow",
+    "Action":[
+      "s3:GetObject",
+      "s3:GetObjectVersion"
+    ],
+    "Resource":"arn:aws:s3::my-bucket/*",
+    "Condition":{
+      "StringEquals":{
+        "s3:ExistingObjectTag/environment":"prod"
+      }
+    }
+  }]
+}
 ```
+    - Below example restricts access to specific IP
+
+```json
+{
+  "Version": "2012-10-17",
+  "Id": "S3PolicyId1",
+  "Statement": [{
+    "Sid": "IPAllow",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:*",
+    "Resource": [
+      "arn:aws:s3:::my-bucket",
+      "arn:aws:s3:::my-bucket/*"
+    ],
+    "Condition": {
+      "NotIpAddress": {
+        "aws:SourceIp": "192.0.2.0/24"
+      }
+    }
+  }]
+}
+```
+
 
 - **Access Control Lists (ACLs)**: Provide a legacy method to manage access permissions on individual objects and buckets.
 
