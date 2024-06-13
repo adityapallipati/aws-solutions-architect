@@ -492,3 +492,60 @@ aws s3api put-object \
 "how we can let our bucket host websites"
 
 **S3 is a globally available service but when you create a bucket you specify a region**
+
+## S3 Security Overview
+
+- **Bucket Policies**: Define permissions for an entire S3 bucket using JSON-based access policy language.
+
+
+- **Access Control Lists (ACLs)**: Provide a legacy method to manage access permissions on individual objects and buckets.
+
+    - ACLs grant basic read/write permissions to other AWS accounts.
+      - you can grant permissions only to other AWS accounts
+      - you cannot grant permissions to users in your account
+      - you cannot grant conditional permissions
+      - you cannot explicitly deny permissions
+    - S3 ACLs have been traditionally used to allow other AWS accounts to upload object to a bucket
+    - Access Control LIsts (ACLs) are a legacy feature of S3 and there are more robust ways to provide cross-account access via bucket policies and access points.
+
+- **AWS PrivateLink for Amazon S3**: Enables private network access to S3, bypassing the public internet for enhanced security.
+
+- **Cross-Origin Resource Sharing (CORS)**: Allows restricted resources on a web page from another domain to be requested.
+
+- **Amazon S3 Block Public Access**: Offers settings to easily block access to all your S3 resources.
+
+    - **Block Public Access** is a safety feature that is enabled by default to **block all public access to an S3 bucket.**
+    - Unrestricted access to S3 Buckets is the **#1 security misconfiguration**
+    - There are four options:
+      - **New** Access Control Lists (ACLs)
+      - **Any** Access Control Lists
+      - **New** Bucket Policies for Access Points
+      - **Any** Bucket Policies or Access Points
+    - **Access points can have their own independent Block Public Access setting**
+
+- **IAM Access Analyzer for S3**: Analyzes resource policies to help identify and mitigate potential access risks.
+
+- **Inter-network Traffic Privacy**: Ensures data privacy by encrypting data moving between AWS services and the Internet.
+
+- **Object Ownership**: Manages data ownership between AWS accounts when objects are uploaded to S3 buckets.
+
+- **Access Points**: Simplifies managing data access at scale for shared datasets in S3.
+
+- **Access Grants**: Providing access to S3 data via directory services eg Active Directory
+
+- **Versioning**: Preserves, retrieves, and restores every version of every object stored in an S3 bucket.
+
+- **MFA Delete**: Adds an additional layer of security by requiring MFA for the deletion of S3 objects.
+
+- **Object Tags**: Provides a way to categorize storage by assigning key value pairs to S3 objects.
+
+- **In-Transit Encryption**: Protects data by encrypting it as it travels to and from S3 over the internet.
+
+- **Server-Side Encryption**: Automatically encrypts data when writing it to S3 and decrypts it when downloading.
+
+- **Client-Side Encryption**: Encrypts data client-side before uploading to S3 and decrypts it after downloading.
+
+- **Compliance Validation for Amazon S3**: Ensures S3 services meet compliance requirements like HIPAA, GDPR, etc.
+
+- **Infrastructure Security**: Protects the underlying infrastructure of the S3 service, ensuring data integrity and availability.
+
