@@ -560,6 +560,22 @@ aws s3api put-object \
 
 - **Cross-Origin Resource Sharing (CORS)**: Allows restricted resources on a web page from another domain to be requested.
 
+    - Cross-Origin Resource Sharing (CORS) is an HTTP-header based mechanism that allows a server to indicate any other origins (domain, scheme, port) than its own from which a browser should permit loading of resource.
+    - CORS restrict which websites may access data to be loaded onto its page.
+    - Access is controlled via HTTP headers.
+      - Request Headers
+        - Origin
+        - Access-Control-Request-Method
+        - Access-Control-Request-Headers
+      - Response Headers
+        - Access-Control-Allows-Origin
+        - Access-Control-Allow-Credentials
+        - Access-Control-Expose-Headers
+        - Access-Control-Max-Age
+        - Access-Control-Allow-Methods
+        - Access-Control-Allow-Headers
+
+
 - **Amazon S3 Block Public Access**: Offers settings to easily block access to all your S3 resources.
 
     - **Block Public Access** is a safety feature that is enabled by default to **block all public access to an S3 bucket.**
@@ -573,13 +589,32 @@ aws s3api put-object \
 
 - **IAM Access Analyzer for S3**: Analyzes resource policies to help identify and mitigate potential access risks.
 
+    - **Access Analyzer for S3** will alert you when your S3 buckets are exposed to the **Internet** or **other AWS Accounts**.
+    - In order to use Access Analyzer for S3 you need to first create and analyzer in IAM Access Analyzer at the account level.
+
 - **Inter-network Traffic Privacy**: Ensures data privacy by encrypting data moving between AWS services and the Internet.
+
+    - Inter-network traffic privacy is about keeping data private as it travels across different networks.
+    - AWS PrivateLink (VPC Interface Endpoints)
+      - Allows you to connect an Elastic Network Interface (ENI) directly to other AWS Services eg S3, EC2, Lambda.
+      - It can connect to select Third-Party services via the AWS Marketplace.
+      - AWS PrivateLink can go cross-account.
+      - Has fine-grain permissions via VPC endpoint policies.
+      - There is a charge for using AWS PrivateLink.
+
+    - VPC Gateway Endpoint
+      - Allows you to connect a VPC directly to S3 (or DynamoDB) staying private within the internal AWS network.
+      - VPC Gateway Endpoint can not go cross-account.
+      - Does not have fine-grain permissions.
+      - There is no charge to use VPC Gateway Endpoints.
 
 - **Object Ownership**: Manages data ownership between AWS accounts when objects are uploaded to S3 buckets.
 
 - **Access Points**: Simplifies managing data access at scale for shared datasets in S3.
 
 - **Access Grants**: Providing access to S3 data via directory services eg Active Directory
+
+    - **Amazon S3 Access Grants** lets you **map identities in a directory service** (IAM Identity Center, Active Directory, OKTA) to access datasets in S3.
 
 - **Versioning**: Preserves, retrieves, and restores every version of every object stored in an S3 bucket.
 
