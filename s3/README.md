@@ -521,7 +521,7 @@ aws s3api put-object \
   }]
 }
 ```
-- ****Below example restricts access to specific IP**
+- **Below example restricts access to specific IP**
 
 ```json
 {
