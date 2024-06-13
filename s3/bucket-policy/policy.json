@@ -1,0 +1,19 @@
+{
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "YOUR_SECOND_AWS_ACCOUNT_IAM_USER_ARN"
+            },
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource":[
+                "arn:aws:s3:::bucket-policy-example-ap-1234",
+                "arn:aws:s3:::bucket-policy-example-ap-1234/*"
+            ]
+        }
+    ]
+}

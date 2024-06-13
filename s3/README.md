@@ -475,7 +475,7 @@ aws s3api put-object \
   - Archived objects will have an additional 40KBs of ddata:
     - 32KB for index and metadata information
     - 8KB for the name of the object
-  
+
   **Glacier Deep Archive is not a separate service and does not require a Vault**
 
 **S3 Outputs has its own storage class.**
