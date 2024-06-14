@@ -623,10 +623,140 @@ aws s3api put-object \
 - **Object Tags**: Provides a way to categorize storage by assigning key value pairs to S3 objects.
 
 - **In-Transit Encryption**: Protects data by encrypting it as it travels to and from S3 over the internet.
+    - When data is encrypted by the sender and then decrypted the receiver.
+    - Data that is secure when moving between locations: TLS, SSL.
+    - This encryption ensures that data remains confidential and **cannot be intercepted or viewed** by unauthorized parties while in transit.
+    - Data will be **encrypted** sender-side.
+    - Data will be **decrypted** server-side.
+    - Transport Layer Security (TLS)
+      - An encryption protocol for data integrity between two or more communicating computer applications.
+      - TLS 1.0, 1.1 are depreciated. **TLS 1.2** and **TLS 1.3 is the current best practice**.
+    - Secure Sockets Layer (SSL)
+      - An encryption protocol for data integrity between two or more communicating computer applications.
+      - SSL 1.0, 2.0, and 3.0 are depreciated.
 
 - **Server-Side Encryption**: Automatically encrypts data when writing it to S3 and decrypts it when downloading.
+    - When data is encrypted by the server.
+    - The server has the key to decrypt when data is requested.
+    - **Server-Side Encryption (SSE)** is **always-on** for all new S3 objects.
+    - SSE-S3
+      - Amazon S3 manages the keys, encrypts using AES-GCM (256-bit) algorithm.
+      - S3 encrypts each object with a unique key
+      - S3 uses envelope encryption
+      - S3 rotates regularly keys automatically
+      - By default all objects will have SSE-S3 applied
+      - There is no additional charge for using SSE-S3
+      - SSE-S3 uses 256-but Advanced Encryption Standard
+          - Galois/Counter Mode (AES-GCM) aks AES256
+
+Example (the flag to **explicitly set** SSE-S3):
+
+```sh
+aws s3api put-object \
+--bucket mybucket \
+--key myfile \
+--server-side-encryption AES256 \
+--body myfile.txt
+```
+
+**By default** SSE-S3 will be applied when no SSE configuration is set.
+
+```sh
+aws s3api put-object \
+--bucket mybucket \
+--key myfile \
+--body myfile.txt
+```
+      **Bucket Key can be set for SSE-S3 for improved performance**
+
+    - SSE-KMS
+      - AWS Key Management Service (KMS) and you manage the keys
+      - You first create a KMS managed key
+      - You choose the KMS key to encrypt your object
+      - KMS can automatically rotate keys
+      - KMS key policy controls who can decrypt using the key
+      - KMS can help meet regulatory compliance
+      - KMS keys have their own additional costs
+      - AWS KMS keys must be in the same Region as the bucket
+      - To upload with KMS you need kms:GenerateDateKey
+      - To download with KMS you need kms:Decrypt
+
+Example using KMS with **aws s3api**:
+
+```sh
+aws s3api put-object \
+--bucket mybucket \
+--key example.txt \
+--body example.txt \ 
+--server-side-encryption "aws:kms" \
+--ssekms-key-id 123abcd-12ab-34cd-56ef-1234567890ab
+```
+
+Example using a KMS key with **aws s3**:
+
+```sh
+aws s3 cp example.txt s3://bucket/example.txt \
+--sse aws:kms \
+--sse-kms-key-id 123abcd-12ab-34cd-56ef-1234567890ab
+```
+
+      **Bucket Key can be set for SSE-KMS for improved performance**
+
+    - SSE-C
+      - Customer provided key (you manage the keys)
+      - When you provide your own encryption key that Amazon S3 then uses the apply AES-256 encryption to your data.
+      - You need to provide the encryption key every time you retrieve objects.
+        - The encryption key you upload is removed from AMazon S3 memory after each request.
+      - There is no additional charge to use SSE-C
+      - Amazon S3 will store a randomly salted Hash-based Message Authentication Code (HMAC) of your encryption key to validate future requests.
+      - Presigned URLs support SSE-C
+      - With bucket versioning different object versions can be encrypted with different keys
+      - You manage encryption keys on the client side, you manage any additional safeguards, such as key rotation, on the client side.
+
+Example:
+**generate key**
+```sh
+$BASE64_ENCODED_KEY=(openssl rand 32 | base64)
+```
+**use key with s3api**
+```sh
+aws s3api put-object \
+--bucket mybucket \
+--key myfile \
+--body file://myfile.txt \
+--sse-customer-algorithm AES256 \
+--sse-customer-key $BASE64_ENCODED_KEY \
+--sse-customer-key-md5 `echo -n
+$BASE64_ENCODED_KEY | base64 --decode |
+md5sum | awk '{print $1}' | base64`
+```
+    - DSSE-KMS
+      - Dual-layer server-side encryption. Encrypts client side than server side.
+      - It's SSE-KMS with the **inclusion of client-side encryption**
+      - It would be more accurate to call it CSE-KMS
+      - With DSSE-KMS data is encrypted twice
+      - The key used for client-side encryption comes from KMS
+      - There are additional charges for DSSE and KMS keys
+      - **Encrypt**
+        - client-side requests AWS KMS to generate a data encryption key (DEK) using the CMK.
+
+Example:
+
+```sh
+aws s3api put-object \
+--bucket mybucket \
+--key example.txt \
+--server-side-encryption "aws:kms:dsse" \
+--ssekms-key-id 123abcd-12ab-34cd-56ef-1234567890ab \
+--body example.txt 
+```
+
+
+    **Server-side encryption only encrypts the contents of an object, not its metadata**
 
 - **Client-Side Encryption**: Encrypts data client-side before uploading to S3 and decrypts it after downloading.
+    - When data is encrypted by the client and then sent to the server.
+    - The client has the key, the server will serve the encrypted file since it does not have the key to decrypt when data is requested.
 
 - **Compliance Validation for Amazon S3**: Ensures S3 services meet compliance requirements like HIPAA, GDPR, etc.
 
