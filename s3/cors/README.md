@@ -75,3 +75,13 @@ aws s3api put-bucket-website --bucket cors-fun-ap-12345-2 --website-configuratio
 ```sh
 aws s3 cp hello.js s3://cors-fun-ap-12345-2
 ```
+
+## Create API Gateway with mock response and then test the endpoint
+
+```md
+https://08yes3tmfb.execute-api.us-east-1.amazonaws.com/Prod
+```
+
+```sh
+curl -X POST -H "Content-Type: application/json" https://08yes3tmfb.execute-api.us-east-1.amazonaws.com/Prod/hello
+```

@@ -15,6 +15,23 @@
 </style>
 <body>
     <h1>Amazon Web Services: CORS Demo!</h1>
-    <script type="text/javascript" src="http://cors-fun-ap-12345-2.s3-website-us-east-1.amazonaws.com/hello.js"></script>
+    <!-- <script type="text/javascript" src="http://cors-fun-ap-12345-2.s3-website-us-east-1.amazonaws.com/hello.js"></script> -->
+     <script type="text/javascript">
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://08yes3tmfb.execute-api.us-east-1.amazonaws.com/Prod/hello", true);
+
+        // Send the proper header information along with the request
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.onreadystatechange = () => {
+        // Call a function when the state changes.
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            const results = JSON.parse(this.responseText);
+            console.log('results', 'results')
+            // Request finished. Do processing here.
+        }
+        };
+        xhr.send();
+     </script>
 </body>
 </html>
