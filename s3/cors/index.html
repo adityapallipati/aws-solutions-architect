@@ -26,8 +26,8 @@
         xhr.onreadystatechange = () => {
         // Call a function when the state changes.
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-            const results = JSON.parse(this.responseText);
-            console.log('results', 'results')
+            const results = JSON.parse(xhr.responseText);
+            console.log(results.message)
             // Request finished. Do processing here.
         }
         };

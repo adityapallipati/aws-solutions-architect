@@ -85,3 +85,38 @@ https://08yes3tmfb.execute-api.us-east-1.amazonaws.com/Prod
 ```sh
 curl -X POST -H "Content-Type: application/json" https://08yes3tmfb.execute-api.us-east-1.amazonaws.com/Prod/hello
 ```
+
+**RECAP**
+
+We created a 2 static websites both did not result in a CORS issue we wanted. So we created a mock API via API Gateway to produce a CORS issue within our first website. Now we're going to set cors on our bucket to resolve the issue.
+
+## Set CORS on our bucket
+
+```sh
+aws s3api put-bucket-cors --bucket cors-fun-ap-12345 --cors-configuration file://./cors.json
+```
+
+cors.json
+
+```json
+{
+    "CORSRules": [
+        {
+            "AllowedOrigins":["https://08yes3tmfb.execute-api.us-east-1.amazonaws.com"],
+            "AllowedHeaders":["*"],
+            "AllowedMethods":["PUT", "POST", "DELETE"],
+            "MaxAgeSeconds": 3000,
+            "ExposeHeaders": ["x-amz-server-side-encryption"]
+        }
+    ]
+}
+```
+
+## Clean Up
+
+```sh
+../bash-scripts/delete-objects cors-fun-ap-12345
+../bash-scripts/delete-bucket cors-fun-ap-12345
+../bash-scripts/delete-objects cors-fun-ap-12345-2
+../bash-scripts/delete-bucket cors-fun-ap-12345-2
+```
