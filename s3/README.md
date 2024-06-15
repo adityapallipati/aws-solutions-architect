@@ -669,6 +669,17 @@ aws s3api put-object \
 ```
       **Bucket Key can be set for SSE-S3 for improved performance**
 
+    When you use SSE-KMS an individual data key is used on every object request. In this case S3 has to call AWS KMS everytime a request is made. KMS charges on the number of requests and so this charge can add up.
+
+    S3 Bucket Key let's you generate a short-lived bucket level key from AWS Key that is temporarily stored in S3.
+    This will reduce request costs by up to 99%.
+    This will decrease request traffic and improve overall performance.
+
+    A unique bucket level key is generated for each requester.
+    You can enable bucket key at the bucket level to be applied to all new objects.
+    You can enable bucket key at the object level for only specific objects.
+    S3 bucket key can be enabled for SS3-S3 and SSE-KMS.
+
     - SSE-KMS
       - AWS Key Management Service (KMS) and you manage the keys
       - You first create a KMS managed key
@@ -767,6 +778,10 @@ aws s3api put-object \
 - **Client-Side Encryption**: Encrypts data client-side before uploading to S3 and decrypts it after downloading.
     - When data is encrypted by the client and then sent to the server.
     - The client has the key, the server will serve the encrypted file since it does not have the key to decrypt when data is requested.
+
+    **Client-Side Encryption**  is when you encrypt your own files before uploading them to S3. This provides a guarantee that AWS and no third-party can decrypt your data.
+
+    Various AWS SDK's have built in code to make it easy to encrypt your data.
 
 - **Compliance Validation for Amazon S3**: Ensures S3 services meet compliance requirements like HIPAA, GDPR, etc.
 
