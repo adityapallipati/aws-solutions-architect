@@ -737,8 +737,18 @@ md5sum | awk '{print $1}' | base64`
       - With DSSE-KMS data is encrypted twice
       - The key used for client-side encryption comes from KMS
       - There are additional charges for DSSE and KMS keys
+
       - **Encrypt**
         - client-side requests AWS KMS to generate a data encryption key (DEK) using the CMK.
+        - KMS sends two versions of the DEK to you: a plaintext version and an encrypted version
+        - You use the plaintext DEK to encrypt your data locally and then discard it from memory
+        - encrypted version of the DEK is stored alongside the encrypted data in Amazon S3
+
+      - **Decrypt**
+        - You retrieve the encrypted data and the associated encrypted DEK
+        - You send the encrypted DEK to AWS KMS which decrypts it using the corresponding CMK and returns the plaintext DEK
+        - Use the plaintext DEK to decrypt the data locally and then discard the DEK from memory
+
 
 Example:
 
