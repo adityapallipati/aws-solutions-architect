@@ -1213,4 +1213,3 @@ resp = s3_client.get_object(
 
 ## Amazon S3 Inventory
 
-  
