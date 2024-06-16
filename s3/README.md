@@ -612,11 +612,89 @@ aws s3api put-object \
 
 - **Access Points**: Simplifies managing data access at scale for shared datasets in S3.
 
+    S3 Access Points simplify managing data access at scale for shared datasets in S3.
+
+    S3 Access Points are **named network endpoints that are attached to bucekts** that you can use to perform S3 object operations like get and put.
+
+    Each access point has:
+      - distinct permissions via an Access Point Policy
+      - distinct network controls 
+      - distinct block public access
+
+    Network Origin:
+      - internet - requests can come from internet
+      - vpc - all requests must come from specified vpc
+
+    S3 Access Point Policy allows you to write permissions for a bucket alongside your bucket policy.
+
+    An access point policy helps you **move specific and complex access configuration out of your bucket policy** keeping your bucket policy simple and easy to read.
+
+    Instead of creating a bucket policy you can create multiple access points that allow you to apply policies to parts of your bucket's content.
+
+    ### Multi Region Access Points
+    Multi-Region Access points is a global endpoint to route request to multiple buckets residing in different regions.
+
+    Multi-Region Access Point will return data from the regional bucket with the lowest latency.
+
+    **AWS Global Accelerator** is used to route the closest bucket.
+      - requests are accelerated over the internet, VPC or PrivateLink
+
+    S3 Replication Rules can be used to synchronize object to the regional buckets
+
+    ### S3 Object Lambda Access Points
+    S3 Object Lambda Access Points allow you to transform the output requests of S3 objects when you want to present data differently.
+
+    S3 Object Lambda Access Points only operates on the outputted objects, the original objects in the S3 bucket remain unmodified.
+
+    S3 Object Lambda can be performed on S3 Operations:
+
+      - HEAD - information about the S3 object, but not the object contents itself
+      - GET - an S3 object including its contents
+      - LIST - a list of s3 objects
+
+    An Amazon Lambda Function is attached to an S3 Bucket via the Object Lambda Access Point.
+
+    Multiple transformations can be configured per Object Lambda Access Point.
+
+
 - **Access Grants**: Providing access to S3 data via directory services eg Active Directory
 
     - **Amazon S3 Access Grants** lets you **map identities in a directory service** (IAM Identity Center, Active Directory, OKTA) to access datasets in S3.
 
 - **Versioning**: Preserves, retrieves, and restores every version of every object stored in an S3 bucket.
+    Versioning allows you to store multiple versions of S3 objects.
+
+    - With versioning you can **recover more easily** from unintended user actions and application failures.
+    - Versioning-enabled buckets can help you recover objects from accidental deletion or overwrite.
+
+    - store all versions of an object in S3 at the same object key address
+    - by default, s3 versioning is disabled on buckets, and you must explicitly enable it
+    - once enabled, it cannot be disabled, only suspended on the bucket
+    - fully integrates with S3 lifecycle rules
+    - mfa delta feature provides extra protection against deletion of your data
+    - buckets can be in three states:
+      - unversioned (default)
+      - versioned
+      - versioned suspended
+
+    **S3 Object Replication**
+
+      - Object Replication can help you do the following:
+        - replicate objects while retaining metadata
+        - replicate objects into different storage classes
+        - maintain object copies under different ownership
+        - keep objects stored over multiple AWS regions
+        - replicate object within 15 minutes
+        - sync buckets, replicate existing objects, and replicate previously failed or replicated objects
+        - replicate objects and fail over to a bucket in another AWS region
+      
+      - Replication Options in S3
+        - **Cross Region Replication** (live-replication)
+        - **Same Region Replication** (live-replication)
+        - **Bi-Directional Replication** (live-replication)
+        - **S3 Batch Replication** (on-demand)
+        - and more ...
+
 
 - **MFA Delete**: Adds an additional layer of security by requiring MFA for the deletion of S3 objects.
 
@@ -787,3 +865,352 @@ aws s3api put-object \
 
 - **Infrastructure Security**: Protects the underlying infrastructure of the S3 service, ensuring data integrity and availability.
 
+## S3 Data Consistency
+
+  **What is data consistency?**
+  When data being is kept in two different places the data should **exactly match**
+
+  **Strongly Consistent**
+  Every time you request data (query) you can expect consistent data to be returned with x time.
+
+  "We will never return to you old data. But you will have to wait at least 2 seconds for the query to return."
+
+  **Eventually Consistent**
+  When you request data you may get back inconsistent data within 2 seconds.
+
+  "We are giving you whatever data is currently in the database, you may get new data or old data, but if you wait a little bit longer it will generally be up to data."
+
+  Amazon S3 offers strong consistency for all read, write, and delete operations.
+  **Prior to Jan 2020, S3 did not have strong consistency for all S3 operations.**
+
+## S3 Lifecycle
+
+  S3 Lifecycle allows you to automate the storage class changes, archival or deletion of objects
+
+  - can be used together with **versioning**
+  - can be applied to both **current** and **previous** versions
+  
+  There are two type of actions
+    - transition actions
+    - expiring actions
+  
+  **Lifecycle Rule Actions**
+    - move current versions of objects between storage classes
+    - move noncurrent versions objects between storage classes
+    - expire current versions of objects
+    - permanently delete noncurrent versions of objects
+    - delete expired object delete markers of incomplete multipart uploads
+  
+  **Lifecycle Filters**
+    - filter based on prefix
+    - filter based on object tags
+    - filter based on object size (mix/max)
+
+## S3 Transfer Acceleration
+
+  S3 Transfer Acceleration is a bucket-level feature that provides fast and secure transfer of files **over long distances** between your end users and an S3 bucket.
+
+  Utilizes **CloudFront's** distributed **Edge Locations** to quickly eter the Amazon Global Network
+
+  Instead of uploading you bucket, users use a **distinct endpoint** to route to an edge location
+  
+  Example:
+  https://s3-accelerate.amazonaws.com
+  https://s3-accelerate.dualstack.amazonaws.com
+
+  - only supported on **virtual-hosted style requests**
+  - buckets cannot contain period and must be DNS compliant
+  - it can take up to 20 minutes after Transfer Acceleration is enabled
+
+Example:
+
+Enable Transfer Acceleration on the bucket.
+```sh
+aws s3api put-bucket-accelerate-configuration \
+--bucket mybucket \
+--accelerate-configuration Status=Enabled
+```
+
+Ensure you are using virtual-hosted style requests.
+```sh
+aws configure set s3.address_style virtual
+```
+
+Utilize the --endpoint-url flag to ensure the S3 Transfer Acceleration endpoint is being used.
+```sh
+aws s3 cp file.txt s3://bucketname/keyname \
+--region us-east-1 \
+--endpoint-url http://s3-accelerate.amazonaws.com
+```
+
+You can optionally tell the AWS CLI to always use the S3 Transfer Acceleration endpoint
+```sh
+aws configure set default.s3.use_accelerate_endpoint true
+```
+
+## S3 Presigned URLs
+
+  S3 Presigned URLs provide temporary access to upload or download object data via URL.
+
+  Presigned URLs are commonly used to provide access to **private objects**
+
+  You can use AWS CLI or AWS SDK to generate a Presigned URL.
+
+Example (the expire is in seconds):
+```sh
+aws s3 presign s3://mybucket/object \
+--expires-in 300
+```
+
+Output:
+```md
+http://mybucket.s3.amazonaws.com/object
+?X-Amz-Algorithm=AWS4-HMAC-SHA256
+&X-Amz-Credential=YOUR_AWS_ACCESS_KEY%2F20231125%Fus-east-1...
+&X-Amz-Date=2031125T123456Z
+&X-Amz-Expires=300
+&X-Amz-SignedHeaders=host
+&X-Amz-Signature=GENERATED_SIGNATURE
+```
+
+- X-Amz-Algorithm: specifies the signing algorithm typically AWS4-HMAC-SHA256
+- X-Amz-Credential: includes your AWS access key and the scope of the signature
+- X-Amz-Date: timestamp of when the signature was created
+- X-Amz-Expires: defines the duration for which the URL is valid, in this case, 300 seconds
+- X-Amz-SignedHeaders: indicates which headers are part of the signing process
+- X-Amz-Signature: the actual signature calculated based on your AWS secret access key, the string to sign, and the signing key.
+
+## Mountpoint for Amazon S3
+
+  **Mountpoint for Amazon S3** allows you to mount an S3 bucket to your Linux local file system.
+
+  Mountpoint is an open source client that you install on your Linux OS and provides high-throughput access to objects with basic file-system operations.
+
+  Mountpoint **can**:
+
+    - read files us to 5TB in size
+    - list and read existing files
+    - create new files
+
+  Mountpoint **cannot**/does not:
+
+    - modify existing files
+    - delete directories
+    - support support symbolic links
+    - support file locking
+
+  It can be used in the following Storage Classes:
+
+    - S3 Standard
+    - S3 Standard IA
+    - S3 One-Zone IA
+    - Reduced Redundancy Storage (RRS)
+    - S3 Glacier Instant Retrieval
+
+  Mountpoint is idea for apps that don't need all the features of a shared file system and POSIX-style permissions but require Amazon S3's elastic throughput to read and write large S3 datasets.
+
+Example Usage:
+
+1. Install Mountpoint (using RPM)
+```sh
+wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.rpm \
+sudo yum install ./mount-s3.rpm
+mount-s3 --version
+```
+
+2. create a folder
+```sh
+mkdir ~/mnt
+```
+
+3. Mount the bucket to the folder
+```sh
+mount-s3 mybucket ~/mnt
+```
+
+4. go into the folder
+```sh
+cd mnt
+```
+
+5. perform basic filesystem operations
+```sh
+# perform basic operations
+# eg. cat, ls, pwd
+```
+
+6. Unmount when done
+```sh
+unmount ~/mnt
+```
+
+## Archived Objects
+
+  Archived Objects are rarely-accessed objects in Amazon S3 that **cannot be accessed in real-time** in exchange for a **reduced storage-cost**
+
+  There are two ways to archive objects:
+
+    1. Archive Storage Classes
+      - when you know your access patterns
+      - requires manual invention to move data
+      - lower costs archive storage costs
+      - can use S3 Glacier Flexible Retrieval (minutes to hours)
+      - can use S3 Glacier Deep Archive (+12 hours)
+
+    2. Archive Access Tiers
+      - when you don't know your access pattern
+      - automatically moves data
+      - slightly higher cost than archive storage classes
+      - can use S3 Intelligent-Tiering Archive Access tier (within minutes)
+      - can use S3 Intelligent-Tiering Deep Archive Access (12+ hours)
+
+## S3 - Requesters Pay
+
+  Requesters Pay bucket option allow the bucker owner to offset specific S3 costs to the requester (the use requesting the data)
+
+  Bucket owner pays for the data storage but the requester pays for the cost to download & request to download.
+
+  When you want to **share data but not incur the charges associated with others accessing the data**
+    - **Collaborative Projects**: External partners pay for their own S3 data uploads/downloads
+    - **Client Data Storage**: Clients pay for their S3 storage and transfer costs
+    - **Shared Educational Resources**: Researchers cover their S3 usage fees, not the institution
+    - **Content Distribution**: Distributors/Customers pay for S3 data transfer and downloads
+
+  You can at anytime toggle Enable or Disable Requesters Pay on a bucket.
+  - all requests must authenticate involving requester pays buckets
+  - requester assumes an IAM role before making their request
+    - the IAM policy will have s3:RequestPayer condition
+  - anonymous access to that bucket is not allowed on buckets with Requesters Pay
+
+Example Policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::bucket-name/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:RequestPayer": "requester"
+        }
+      }
+    }
+  ]
+}
+```
+
+## S3 - Requesters Pay Header
+
+  Requesters must include x-amz-request-payer in their API request header for:
+    - DELETE, GET, HEAD, POST and PUT requests
+    - or as a parameter in a REST request
+  
+  In practice using the Requester Pay API requester header via the AWS CLI or AWS SDK is common.
+  Using the AWS CLI you can use **--request-payer** flag to include the header in your object request.
+
+Example with CLI:
+```sh
+aws s3 cp \
+s3://bucket-name/object local/path/object \
+--request-payer requester
+```
+
+Example using AWS Python SDK:
+
+```py
+resp = s3_client.get_object(
+  bucket = bucket,
+  key = object_key,
+  request_payer = 'requester'
+)
+```
+
+## S3 - Requesters Pay Troubleshooting
+
+  - **403 (Forbidden Request)** HTTP Error code will occure in the following scenarios:
+    - the requester doesn't include the parameter x-amz-request-payer
+    - request authentication fail s(something is wrong with the IAm role or IAM policy)
+    - the request is anonymous
+    - the request is a SOAP request (SOAP requests are not allowed when requesters pay is turned on)
+  
+  **In the case the requesters forget to include the header, than 403 will occure, no charge will occur to the requester. No charge will occur to the bucket owner.**
+
+
+## AWS Marketplace for S3
+
+  The AWS Marketplace for S3 provides alternatives to AWS Services that work with Amazon S3.
+
+  **Storage and Backup Recovery**:
+    AWS Services:
+      - FSx for Lustre
+      - Tape Gateway
+      - File Gateway
+
+    Third-Party Services:
+      - Veeam Backup for AWS
+      - Druva: AWS Backup and Disaster Recovery
+
+  **Data Integration and Analytics**:
+    AWS Services:
+      - Transfer Family
+      - DataSync
+      - Athena
+
+    Third-Party Services:
+      - ChaosSearch
+      - Logz.io
+      - BryteFlow Enterprise Edition
+
+  **Observability and Monitoring**:
+    AWS Services:
+      - CloudTrail
+      - CloudWatch
+
+    Third-Party Services:
+      - DataDog, Splunk, Dynatrace
+
+  **Security and Threat Detection**:
+    AWS Services:
+      - GaurdDuty
+      - Macie
+
+    Third-Party Services:
+      - Trend Cloud One
+      - InsightIDR (Rapid7)
+      - VM-Series Virtual Next Generation Firewalls (NGFW) (Palo Alto Networks)
+
+  **Permissions**:
+    AWS Services:
+      - IAM
+
+    Third-Party Services:
+      - OneLogin Workforce Identity
+      - FileCloud EFSS
+      - Yarkon S3 Server
+
+## S3 Batch Operations (Console Only Process)
+
+  - S3 Batch operations performs **large-scale** batch operations on Amazon S3 objects
+    *billions of object containing exabytes of data*
+
+  The following Batch Operation Types can be performed:
+    - Copy: Copies each object listed in the manifest to the specified destination bucket
+    - Invoke AWS Lambda function: Run a Lambda function against each object
+    - Replace all object tags: Replaces the Amazon S3 object tags of each object
+    - Replace access control list (ACL): Replaces the (ACLs) for each object
+    - Restore: Sends a restore request to S3 Glacier
+    - Object Lock retention: Prevents overwriting or deletion for a fixed amount of time
+    - Object Lock legal hold: Prevents overwriting or deleting until the legal hold is removed
+
+  In order to perform a batch operation you need to provide lists of objects in an S3 or supply S3 Inventory report manifest.json.
+  You can have Batch Operation generate out a completion report to audit the outcome bulk operation.
+
+## Amazon S3 Inventory
+
+  
