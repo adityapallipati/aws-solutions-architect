@@ -1213,3 +1213,270 @@ resp = s3_client.get_object(
 
 ## Amazon S3 Inventory
 
+  Amazon S3 Inventory takes inventory of objects in an S3 bucket on a repeating schedule so you have an audit history of object changes.
+
+  Amazon S3 will output the inventory into the destination of another S3 Bucket.
+
+  Frequency:
+    - Daily
+      - delivered within 48 hours
+    - Weekly
+      - First report delivered within 48 hours
+      - Future reports every Sunday
+  Output Format:
+    - CSV (Comma-separated values)
+    - ORC (Apache Optimized Columnar)
+    - Parquet (Apache Parquet)
+
+  Inventory Scope:
+    - Specific prefixes to filter objects
+    - Specific all or only current versions
+
+  You can specify additional metadata to be included in the report.
+
+# Amazon S3 Select
+  - S3 Select lets you use a Structured Query Language (SQL) to filter contents of S3 objects.
+
+  works on objects stored in:
+    - CSV, JSON, or Apache Parquet
+  works with objects that are compressed with
+    - GZIP or BZIP2 (for CSV and JSON objects only)
+  works on objects that are
+    - server-side encrypted objects
+
+  You can get results back in JSON or CSV
+
+  It can be used in the following Storage Classes:
+    - S3 Standard
+    - S3 Intelligent-Tiering
+    - S3 Standard IA
+    - S3 One-Zone IA
+    - S3 Glacier Instant Retrieval
+
+Example:
+
+```sh
+aws s3api select-object-content \
+--bucket my-bucket \
+--key my-data-file.csv \
+--expression "select * from s3object limit 100" \
+--expression-type 'SQL' \
+--input-serialization '{"CSV": {}, "CompressionType": "NONE"}' \
+--output-serialization '{"CSV": {}}' "output.csv"
+```
+
+## S3 Event Notifications
+
+  S3 Event Notifications allows your bucket to notify other AWS Services about S3 event data.
+
+  S3 Event Notifications makes **application integration very easy** for S3.
+
+  Notification Events:
+    - new object created events
+    - object removal events
+    - restore object events
+    - reduced redundancy storage (rss) object lost events
+    - replication events
+    - s3 lifecycle expiration events
+    - s3 lifecycle transition events
+    - s3 intelligent-tiering automatic archival events
+    - object tagging events
+    - object acl PUT events
+
+  Possible Destination to other AWS Services
+    - Amazon Simple Notification Service (SNS) topics
+    - Amazon Simple Queue Service (SQS) queues
+      - FIFO not supported
+    - AWS Lambda Function
+    - Amazon EventBridge
+
+  **Amazon S3 event notifications are designed to be delivered at least once, notifications are delivered in seconds but can sometimes take a minute or longer**
+
+# S3 Storage Class Analysis
+
+  Storage Class Analysis allows you to analyze storage access patterns of objects within a bucket to recommend objects to move between STANDARD to STANDARD_IA
+
+Example:
+
+```sh
+aws s3api put-bucket-analytics-configuration \
+--bucket my-bucket --id 1 \
+--analytics-configuration '{"Id": "1", "StorageClassAnalysis": {}}'
+```
+
+  - observes the infrequent access patterns of a filtered set of data over a period of time
+  - you can have multiple analysis filters per bucket (up to 100 filters)
+  - the results can be exported to CSV
+    - export this daily usage to an S3 bucket
+    - use data in Amazon QuickSight for data visualization
+  - provides storage usage visualizations in the Amazon S3 console that are updated daily
+  - after a filter is applied the analysis will be available 24 to 48 hors
+  - storage class analysis will analyze an object for 30 days or longer to gather enough information
+
+# S3 Storage Lens
+
+  Amazon S3 Storage Lens is a storage analysis tool for S3 buckets across your entire AWS organization
+
+    - how much storage you have across your organization
+    - which are the fastest-growing buckets and prefixes
+    - identify cost-optimization opportunities
+    - implement data-protection and access-management best practices
+    - improve the performance of application workloads
+    - metrics can be exported as CSV or Parquet to another S3 bucket
+    - usage and metrics can be exported to Amazon CloudWatch
+
+    **S3 Storage Lens aggregates metrics and displays the information in the Account Snapshot as an interactive dashboard that is updated daily.**
+
+
+# S3 Static Website Hosting
+
+  S3 Static Website Hosting allows you to host and serve a static website from an S3 bucket.
+
+  S3 website endpoints do not support HTTPS
+    - Amazon CloudFront must be used to serve HTTPS traffic
+  
+  S3 Static Website hosting will provide a website endpoint
+
+  Example:
+  ```md
+  http://bucket-name.s3-website-region.amazonaws.com
+  http://bucket-name.s3-website.region.amazonaws.com
+  ```
+
+  The format of the website endpoint varies based on region that will either have a hyphen or a period.
+
+  There are two hosting types (via the console)
+    - Host a static website
+    - Redirect request to objects
+
+  Requester Pays buckets do not allow access through a website endpoint.
+
+# Amazon S3 Multipart Upload
+
+  Amazon S3 supports multipart upload so you can upload a single object in a set of parts.
+
+  Multipart upload advantages:
+    - improved throughput
+    - in case of network fail you just need to reupload the missing parts
+    - once you start a multipart upload, you can upload parts at any time, there is no expiry time to upload
+    - you can upload files while you're creating a file
+
+  **For files that are +100MB multipart upload is recommended**
+
+Example:
+
+1. First need to initiate an upload which will return back an Upload ID
+
+```sh
+aws s3api create-multipart-upload \
+--bucket my-bucket \
+--key 'myfile'
+```
+
+2. Then upload each part by provided the Upload ID. 
+  - parts can be numbered from 1 to 1000
+  - collect all the etags for each part
+
+```sh
+aws s3api upload-part \
+--bucket my-bucket \
+--key 'myfile' \
+--part-number 1 \
+--body part01 \
+--upload-id 'aFDKLJDLSKFu48JDF...'
+```
+
+3. Then tell S3 that upload is finished
+  - need to provide a JSON file with all etags corresponding to each part
+
+```sh
+aws s3api complete-multipart-upload \
+--bucket my-bucket \
+--key 'myfile' \ 
+--multipart-upload file://parts.json \
+--upload-id 'aFDKLJDLSKFu48JDF...'
+```
+
+*parts.json*
+```json
+{
+  "Parts": [
+    {"PartNumber": 1, "ETag": "ETAGFORPART1"},
+    {"PartNumber": 2, "ETag": "ETAGFORPART2"},
+    {"PartNumber": 3, "ETag": "ETAGFORPART3"}
+  ]
+}
+```
+
+## Amazon S3 Byte Range Fetching
+
+  Amazon S3 allows you to **fetch a range of bytes** of data from S3 Objects using the Range header during S3 GetObject API Requests.
+
+Example:
+
+```py
+import boto3
+
+s3 = boto3.client('s3')
+bucket_name = 'bucket-name'
+object_key = 'object-key'
+
+# get the first 100 bytes
+byte_range = 'bytes=0-99'
+response = s3.get_object(Bucket='mybucket', Key='myobject.txt', Range=byte_range)
+
+# read the partial context
+data = response['Body'].read()
+```
+  - Amazon S3 allows for concurrent connections so you can request multiple parts at the same time.
+  - Fetching smaller ranges of a large object also allows your application to improve retry times when requests are interrupted.
+  - Typical sizes for byte-range request are between 8-16MB.
+
+Boto3 example opening multiple concurrent S3 connections, holding each part in memory and then reassembling the parts back into a single file:
+
+```py
+import boto3
+
+s3 = boto3.client('s3')
+bucket = 'b'
+ket = 'k'
+
+brange = ['bytes=0-99', 'bytes=100-199', 'bytes=200-299']
+
+# fetch the parts
+parts = []
+for byte_range in byte_ranges:
+  response = s3.get_object(Bucket=bucket, Key=key, Range=brange)
+  parts.append(response['Body'].read())
+
+# concatenate the parts
+complete_file = b''.join(parts)
+
+# write the complete file to disk
+with open('output_file', 'wb') as f:
+  f.write(complete_file)
+
+```
+
+*Depending how large the file is you might need to write each part to disk if your program does not have enough memory to hold all parts.*
+
+## S3 Interoperability
+
+  What is Interoperability?
+
+  Interoperability in the context of cloud services is **the capability of cloud services to exchange and utilize information seamlessly with each other.
+
+  Here are common AWS services that often dump data into S3:
+    - Amazon EC2: stores snapshots and backups in S3
+    - Amazon RDS: Backups and data exports to S3
+    - AWS CloudTrail: Stores API call logs in S3
+    - Amazon CloudWatch Logs: Exports logs/metric to S3
+    - AWS Lambda: Outputs data/logs to S3
+    - AWS Glue: ETL results stored in S3
+    - Amazon Kinesis: Data streaming to S3 via Firehose
+    - Amazon EMR: Uses S3 for input/output data storage
+    - AWS Redshift: Unloads data to S3
+    - AWS Data Pipeline: Moves/transforms data to/from S3
+    - Amazon Athena: Outputs query results to S3
+    - AWS IoT Core: Stores IoT data in S3
+
