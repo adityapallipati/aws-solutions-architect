@@ -170,5 +170,140 @@ s3 = boto3.client('s3',
     aws_session_token=creds['SessionToken']
     )
 ```
+## Signing AWS API Requests
 
+When you send API Requests to AWS, you sign the requests so that AWS can identify who sent them.
+
+When you use the AWS CLI or AWS SDK, requests are signed for you automatically.
+Some requests don't need to be signed:
+    - Anonymous requests to Amazon S3
+    - Some API operations to STS e.g. AssumeRoleWithWebIdentity
+
+Signatures do the following:
+    - Prevent data tampering
+    - Verifies the identity of the requester
+
+Example of a signature being supplied:
+
+```sh
+https://s3.amazonaws.com/examplebucket/test.txt
+?X-Amz-Algorithim=AWS4-HMAC-SHA256
+&X-Amz-Credential=<your-access-key-id>/20130721/us-east...
+&X-Amz-Date=20130721T201207Z
+&X-Amx-Expires=86400
+&X-Amx-SignedHeaders=host
+&X-Amz-Signature=<signature-value>
+```
+AWS has two different protocols for signing:
+    - version 2 (not used)
+    - version 4 
+
+## AWS IP Address Ranges
+AWS Publishes all of its IP Address Ranges at this url in json format:
+https://ip-ranges.amazonaws.com/ip-ranges.json
+
+```sh
+curl https://ip-ranges.amazonaws.com/ip-ranges.json \
+| jq jq '.prefixes[] | select(.region=="us-east-1") | select(.service=="CODEBUILD") |.ip_prefix'
+```
+## Service Endpoints
+
+To connect programtically to an AWS service, you use an endpoint. 
+
+An endpoint is the URL of the entry point for an AWS web service.
+
+This is generally the format of a service endpoint (it varies per service)
+protocol://service-code.region-code.amazonaws.com
+
+- generally TLSv2 is expected some older APIs might support TLSv1, TLSv1.1, or HTTP
+
+There are four types of Service Endpoints:
+1. Global Endpoints - AWS Services that use the same endpoint
+2. Regional Endpoints - AWS Services require you to specify a region
+3. FIPS Endpoints - Some endpoints support FIPS for enterprise use
+4. Dualstack Endpoints - Allows IPV6 or IPV4
+
+The types of Service Endpoints cna be combined eg Regional + FIPS + Dualstack
+An AWS Service may have multiple different service endpoints
+    - AWS CLI and AWS SDK will automatically use the default endpoint for each service in an AWS Region
+
+## Configuration Files
+
+AWS has two different configuration files in TOML format at:
+~/.aws/credentials - used to store sensitive credentials eg AWS Access Key and Secret
+~/.aws/config - used to store generic configurations eg Preferred Region
+
+You can store all the same configureation in either files, though credentials will take precendence over config
+
+Global Configuration options for configuration files:
+- **aws_access_key_id**
+- **aws_secret_access_key**
+- aws_session_token
+- ca_bundle
+- cli_auto_prompt
+- cli_binary_format
+- cli_history
+- cli_pager
+- cli_timestamp_format
+- credential_process
+- credential_source
+- duration_seconds
+- external_id
+- max_attempts
+- mfa_serial
+- **output**
+- parameter_validation
+- **region**
+- retry_mode
+- role_arn
+- role_session_name
+- source_profile
+- sso_account_id
+- sso_region
+- sso_registration_scopes
+- sso_role_name
+- sso_start_url
+- web_identity_token_file
+- tcp_keepalive
+
+## Named Profiles
+AWS Config files support the ability to have multiple profiles
+
+Profiles allow you to switch between different configurations quickly for different environments
+
+## AWS CLI Configure Commands
+
+AWS CLI has multiple configure commands to make configuration easy:
+
+A wizard to quickly setup your configuration file
+```md
+$ aws configure
+AWS Access Key ID [None]: SOMEKEY
+AWS Secret Access Key [None]: SOMESECRETKEY
+Default region name [None]: us-east-1
+Default output format [None]: json
+```
+Set a value for a specific string
+
+```sh
+aws configure set region us-west-2 --profile dev
+```
+
+Unset a value by using the set command with a blank string
+
+```sh
+aws configure set region "" --profile dev
+```
+
+Use get to print the value of a string
+
+```sh
+aws configure get region
+```
+
+Import AWS Credentials generated and downloaded from the AWS Console
+
+```sh
+aws configure import --csv file://credentials.csv
+```
 
