@@ -365,19 +365,19 @@ AWS CLI Auto Prompt (Recommended)
 AWS CLI Autoprompt is a powerful interactive shell built into AWS CLI to assist in writing CLI commands.
 
 AWS CLI Autoprompt features
-    - Fuzzy Search
-    - Command Completion
-    - Parameter Completion
-    - Resource Completion
-    - Shorthand Completion
-    - File Completion
-    - Region Completion
-    - Profile Completion
-    - Documentation Panel
-    - Projected Output Panel
-    - Command History
-    - Two different modes of activation
-    - Works anywhere AWS CLI is installed
+- Fuzzy Search
+- Command Completion
+- Parameter Completion
+- Resource Completion
+- Shorthand Completion
+- File Completion
+- Region Completion
+- Profile Completion
+- Documentation Panel
+- Projected Output Panel
+- Command History
+- Two different modes of activation
+- Works anywhere AWS CLI is installed
 
 ## AWS CLI Autoprompt - Configuration
 
