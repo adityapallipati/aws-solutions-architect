@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create a role for us to assume and create a resource we'll have access to
+Parameters:
+  BucketName:
+    Type: String
+    Default: "sts-fun-ap-12345"
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+  StsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "arn:aws:iam::590183687974:user/sts-machine-user"
+              # Service:
+              #   - s3.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: s3access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:*"
+                Resource:
+                  - Fn::Sub: "arn:aws:s3:::*"
+                  - Fn::Sub: "arn:aws:s3:::${BucketName}"
+                  - Fn::Sub: "arn:aws:s3:::${BucketName}/*"

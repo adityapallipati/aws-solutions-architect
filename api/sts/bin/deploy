@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+echo "== deploy cloudformation template"
+
+aws cloudformation deploy \
+--template-file template.yaml \
+--stack-name my-sts-fun-stack \
+--capabilities CAPABILITY_IAM
