@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 echo "== delete vpc"
 
-set -e
+REGION=us-east-2
+
+# VPC IGW SUBNET RT
 
 # check if thh argument is not provided
 if [ -z "$1" ]; then
@@ -10,12 +12,38 @@ else
     export VPC_ID="$1"
 fi
 
-# delete vpc
-aws ec2 delete-vpc --vpc-id $VPC_ID
+if [ -z "$2" ]; then
+    echo "Argument not provided."
+else
+    export IGW_ID="$2"
+fi
 
-# detach IGW
+if [ -z "$3" ]; then
+    echo "Argument not provided."
+else
+    export SUBNET_ID="$3"
+fi
+
+
+# detach the IGW
+aws ec2 detach-internet-gateway \
+--internet-gateway-id $IGW_ID \
+--vpc-id $VPC_ID \
+--region $REGION
 
 # delete the IGW
 
+aws ec2 delete-internet-gateway \
+--internet-gateway-id $IGW_ID \
+--region $REGION
+
+# delete subnet
+aws ec2 delete-subnet \
+--subnet-id $SUBNET_ID \
+--region $REGION
+
 # delete vpc
 
+aws ec2 delete-vpc \
+--vpc-id $VPC_ID \
+--region $REGION
