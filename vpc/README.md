@@ -33,6 +33,7 @@ A VPC is composed of many different networking components.
 - Acts as a **stateless** virtual firewall for compute within a VPC
 - Operates at the subnet level with allow and deny rules
 
+
 **Security Groups (SG)**
 - Acts as a **stateful** virtual firewall for compute within a VPC
 - Operates at the instance level with allow rules
@@ -154,4 +155,27 @@ IPv6 default route
 When we specify 0.0.0.0/0 in our Route Table for IGW we are allowing internet access.
 
 When we specify 0.0.0.0/0 in our Security Group's Inbound Rules, we are allowing all traffic from the internet to access our public resources.
+
+## Shared VPCs
+
+AWS Resource Access Manager (RAM) allows you to share resources across your AWS Accounts.
+
+VPCs can be shared with other AWS Accounts within the same account to centrally manage resources in a single VPC.
+
+Using a shared VPC allows you to:
+- reduce the number of VPCs that you create and manage
+- separate accounts for billing and access control
+
+In order to share VPCs you need to enable sharing within your AWS Organization via the RAM API
+
+```sh
+aws ram enable-sharing-with-aws-organization
+```
+
+- you share VPCs by sharing subnets
+- you can share only non-default subnets
+- you need to create a resource share in RAM (what you're sharing)
+- you need to create shared principles in RAM (who you're sharing with)
+
+Shared VPCs will appear in teh shared account with the specific share subnets. You can tell if its shared by checking the OwnerID
 
