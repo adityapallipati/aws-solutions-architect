@@ -1,5 +1,16 @@
 # AWS Sagemaker
 
+```sh
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
+```
+
+```sh
+cd lambda
+zip lambda_function.zip lambda_function.py
+mv lambda_function.zip ..
+```
+
 ## Step 1: Basic Directory Structure
 
 ```md

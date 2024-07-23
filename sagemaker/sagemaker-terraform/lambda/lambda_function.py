@@ -1,11 +1,12 @@
 import boto3
+import os
 
 def lambda_handler(event, context):
     sagemaker_client = boto3.client('sagemaker')
     ec2_client = boto3.client('ec2')
 
     # Stop and delete the existing SageMaker Notebook instance
-    notebook_instance_name = "sagemaker-notebook-free-tier"
+    notebook_instance_name = os.environ['SAGEMAKER_NOTEBOOK_INSTANCE_NAME']
     sagemaker_client.stop_notebook_instance(NotebookInstanceName=notebook_instance_name)
     sagemaker_client.delete_notebook_instance(NotebookInstanceName=notebook_instance_name)
 
@@ -26,9 +27,9 @@ def lambda_handler(event, context):
     sagemaker_client.create_notebook_instance(
         NotebookInstanceName=notebook_instance_name,
         InstanceType='ml.t2.medium',
-        RoleArn='<Your-SageMaker-Execution-Role-ARN>',
-        SubnetId='<Your-Subnet-ID>',
-        SecurityGroupIds=['<Your-Security-Group-ID>'],
+        RoleArn=os.environ['SAGEMAKER_EXECUTION_ROLE_ARN'],
+        SubnetId=os.environ['SUBNET_ID'],
+        SecurityGroupIds=[os.environ['SECURITY_GROUP_ID']],
         VolumeSizeInGB=5,
         DirectInternetAccess='Enabled',
         RootAccess='Enabled',

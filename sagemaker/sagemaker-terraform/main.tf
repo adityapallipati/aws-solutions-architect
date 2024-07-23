@@ -1,5 +1,36 @@
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
+}
+
+# VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+# Subnet
+resource "aws_subnet" "main" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+}
+
+# Security Group
+resource "aws_security_group" "sagemaker_sg" {
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # IAM Role for SageMaker
@@ -79,6 +110,7 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
   })
 }
 
+# S3 Buckets
 resource "aws_s3_bucket" "sagemaker_data" {
   bucket = "sagemaker-data-bucket-free-tier"
   acl    = "private"
@@ -89,27 +121,33 @@ resource "aws_s3_bucket" "sagemaker_model_artifacts" {
   acl    = "private"
 }
 
+# SageMaker Notebook Instance
 resource "aws_sagemaker_notebook_instance" "notebook" {
   name              = "sagemaker-notebook-free-tier"
   instance_type     = "ml.t2.medium"  # Free tier eligible
   role_arn          = aws_iam_role.sagemaker_execution_role.arn
   lifecycle_config_name = aws_sagemaker_notebook_instance_lifecycle_configuration.lifecycle_config.name
+  subnet_id         = aws_subnet.main.id
+  security_groups   = [aws_security_group.sagemaker_sg.id]
 }
 
 resource "aws_sagemaker_notebook_instance_lifecycle_configuration" "lifecycle_config" {
   name = "sagemaker-lifecycle-config-free-tier"
 
-  on_start = <<-EOF
+  on_start = base64encode(<<-EOF
     #!/bin/bash
     echo "Starting the SageMaker Notebook Instance"
   EOF
+  )
 
-  on_create = <<-EOF
+  on_create = base64encode(<<-EOF
     #!/bin/bash
     echo "Creating the SageMaker Notebook Instance"
   EOF
+  )
 }
 
+# Lambda Function
 resource "aws_lambda_function" "sagemaker_refresh" {
   filename         = "lambda/lambda_function.zip"
   function_name    = "sagemaker_refresh"
@@ -120,11 +158,20 @@ resource "aws_lambda_function" "sagemaker_refresh" {
 
   environment {
     variables = {
-      SAGEMAKER_NOTEBOOK_INSTANCE_NAME = "sagemaker-notebook-free-tier"
+      SAGEMAKER_NOTEBOOK_INSTANCE_NAME = aws_sagemaker_notebook_instance.notebook.name
+      SAGEMAKER_EXECUTION_ROLE_ARN     = aws_iam_role.sagemaker_execution_role.arn
+      SUBNET_ID                        = aws_subnet.main.id
+      SECURITY_GROUP_ID                = aws_security_group.sagemaker_sg.id
     }
+  }
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.main.id]
+    security_group_ids = [aws_security_group.sagemaker_sg.id]
   }
 }
 
+# CloudWatch Event Rule
 resource "aws_cloudwatch_event_rule" "thirty_day_rule" {
   name        = "thirty-day-rule"
   description = "Trigger Lambda every 30 days"
@@ -144,5 +191,3 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.thirty_day_rule.arn
 }
-
-
