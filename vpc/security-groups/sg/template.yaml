@@ -6,13 +6,13 @@ Parameters:
     Default: t2.micro
   VpcId:
     Type: String
-    Default: vpc-03181823a2da0addd
+    Default: vpc-08eed5fc5146e97e7
   ImageId:
     Type: String
-    Default: ami-003c24b59bb839e19
+    Default: ami-0ba9883b710b05ac6
   SubnetId:
     Type: String
-    Default: subnet-0584791a9829bc51c
+    Default: subnet-0aacf8bfc1a13b9fe
 Resources:
   SSMRole:
     Type: AWS::IAM::Role
